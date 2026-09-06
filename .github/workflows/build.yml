@@ -19,17 +19,37 @@ jobs:
           sudo xcode-select -s "$X/Contents/Developer"
           xcodebuild -version
 
-      - name: Install tools
-        run: brew install xcodegen librsvg
+      - name: Install XcodeGen
+        run: brew install xcodegen
 
-      - name: Generate assets (app icon & logo)
+      - name: Check source files
+        run: ls -R ImperialCalendar
+
+      - name: Download Lion & Sun flag (official logo)
+        run: |
+          set -e
+          curl -fSL -A "Mozilla/5.0" -o flag_raw.png \
+            "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fd/State_flag_of_Iran_%281964%E2%80%931980%29.svg/3840px-State_flag_of_Iran_%281964%E2%80%931980%29.svg.png" \
+          || curl -fSL -A "Mozilla/5.0" -o flag_raw.png \
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/State_flag_of_Iran_%281964%E2%80%931980%29.svg/2560px-State_flag_of_Iran_%281964%E2%80%931980%29.svg.png"
+          file flag_raw.png
+
+      - name: Generate assets (AppIcon & Logo)
         run: |
           set -e
           base="ImperialCalendar/Assets.xcassets"
           mkdir -p "$base/AppIcon.appiconset" "$base/Logo.imageset"
-          cp AppIcon.svg Logo.svg
-          rsvg-convert -w 1024 -h 1024 AppIcon.svg -o "$base/AppIcon.appiconset/icon1024.png"
-          rsvg-convert -w 512 -h 512 Logo.svg -o "$base/Logo.imageset/logo.png"
+
+          # آیکون اپ: مربعی با حاشیه سفید
+          sips -Z 1024 flag_raw.png --out icon_sq.png >/dev/null
+          sips --padToHeightWidth 1024 1024 --padColor FFFFFF icon_sq.png \
+               --out "$base/AppIcon.appiconset/icon1024.png" >/dev/null
+
+          # لوگوی داخل برنامه: پرچم کامل در سه مقیاس
+          sips -Z 300 flag_raw.png --out "$base/Logo.imageset/logo.png"    >/dev/null
+          sips -Z 600 flag_raw.png --out "$base/Logo.imageset/logo@2x.png" >/dev/null
+          sips -Z 900 flag_raw.png --out "$base/Logo.imageset/logo@3x.png" >/dev/null
+
           cat > "$base/Contents.json" <<'EOF'
           { "info" : { "author" : "xcode", "version" : 1 } }
           EOF
@@ -37,7 +57,12 @@ jobs:
           { "images" : [ { "filename" : "icon1024.png", "idiom" : "universal", "platform" : "ios", "size" : "1024x1024" } ], "info" : { "author" : "xcode", "version" : 1 } }
           EOF
           cat > "$base/Logo.imageset/Contents.json" <<'EOF'
-          { "images" : [ { "filename" : "logo.png", "idiom" : "universal", "scale" : "1x" }, { "idiom" : "universal", "scale" : "2x" }, { "idiom" : "universal", "scale" : "3x" } ], "info" : { "author" : "xcode", "version" : 1 } }
+          { "images" : [
+              { "filename" : "logo.png",    "idiom" : "universal", "scale" : "1x" },
+              { "filename" : "logo@2x.png", "idiom" : "universal", "scale" : "2x" },
+              { "filename" : "logo@3x.png", "idiom" : "universal", "scale" : "3x" }
+            ],
+            "info" : { "author" : "xcode", "version" : 1 } }
           EOF
 
       - name: Generate project
