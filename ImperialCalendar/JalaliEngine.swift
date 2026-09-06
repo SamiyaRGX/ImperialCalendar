@@ -8,7 +8,7 @@ struct JalaliDate: Equatable {
 
 enum ImperialCalendarEngine {
 
-    /// سال شاهنشاهی = هجری شمسی + ۱۱۸۰ (مبدأ: ۵۵۹ پیش از میلاد)
+    /// سال شاهنشاهی = هجری شمسی + ۱۱۸۰ (مبدأ: بنیان شاهنشاهی کوروش، ۵۵۹ پ.م)
     static let imperialOffset = 1180
 
     static let monthNames = [
@@ -30,16 +30,13 @@ enum ImperialCalendarEngine {
         return c
     }()
 
-    // MARK: - تبدیل میلادی → شمسی
+    // MARK: - میلادی → شمسی (الگوریتم استاندارد و آزموده)
     static func gregorianToJalali(gy: Int, gm: Int, gd: Int) -> JalaliDate {
         let gdm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
-        var gyv = gy
-        var jy = gyv <= 1600 ? 0 : 979
-        gyv -= gyv <= 1600 ? 621 : 1600
-        let gy2 = gm > 2 ? gyv + 1 : gyv
-        var days = 365 * gyv + (gy2 + 3) / 4 - (gy2 + 99) / 100
-        days += (gy2 + 399) / 400 - 80 + gd + gdm[gm - 1]
-        jy += 33 * (days / 12053)
+        let gy2 = gm > 2 ? gy + 1 : gy
+        var days = 355666 + 365 * gy + (gy2 + 3) / 4 - (gy2 + 99) / 100
+             + (gy2 + 399) / 400 + gd + gdm[gm - 1]
+        var jy = -1595 + 33 * (days / 12053)
         days %= 12053
         jy += 4 * (days / 1461)
         days %= 1461
@@ -47,23 +44,30 @@ enum ImperialCalendarEngine {
             jy += (days - 1) / 365
             days = (days - 1) % 365
         }
-        let jm = days < 186 ? 1 + days / 31 : 7 + (days - 186) / 30
-        let jd = 1 + (days < 186 ? days % 31 : (days - 186) % 30)
+        let jm: Int
+        let jd: Int
+        if days < 186 {
+            jm = 1 + days / 31
+            jd = 1 + days % 31
+        } else {
+            jm = 7 + (days - 186) / 30
+            jd = 1 + (days - 186) % 30
+        }
         return JalaliDate(year: jy, month: jm, day: jd)
     }
 
-    // MARK: - تبدیل شمسی → میلادی
+    // MARK: - شمسی → میلادی (نسخه اصلاح‌شده با ثابت‌های استاندارد)
     static func jalaliToGregorian(jy jyIn: Int, jm: Int, jd: Int) -> (gy: Int, gm: Int, gd: Int) {
-        let gyBase = jyIn <= 979 ? 621 : 1600
-        let jy = jyIn - (jyIn <= 979 ? 0 : 979)
-        var days = 365 * jy + (jy / 33) * 8 + ((jy % 33) + 3) / 4
+        let jy = jyIn + 1595
+        var days = -355668 + 365 * jy + (jy / 33) * 8 + ((jy % 33) + 3) / 4 + jd
         days += jm < 7 ? (jm - 1) * 31 : (jm - 7) * 30 + 186
-        days += jd - 1
-        var gy = gyBase + 400 * (days / 146097)
+
+        var gy = 400 * (days / 146097)
         days %= 146097
         if days > 36524 {
-            gy += 100 * ((days - 1) / 36524)
-            days = days - (days - 1) / 36524 * 36524
+            days -= 1
+            gy += 100 * (days / 36524)
+            days %= 36524
             if days >= 365 { days += 1 }
         }
         gy += 4 * (days / 1461)
