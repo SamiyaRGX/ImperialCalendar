@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#FFFFFF"/>
+  <rect width="1024" height="341" fill="#239F40"/>
+  <rect y="683" width="1024" height="341" fill="#DA0000"/>
+  <defs>
+    <polygon id="ray" points="512,150 540,292 484,292" fill="#F2B705"/>
+  </defs>
+  <g fill="#F2B705">
+    <use xlink:href="#ray"/>
+    <use xlink:href="#ray" transform="rotate(45 512 430)"/>
+    <use xlink:href="#ray" transform="rotate(90 512 430)"/>
+    <use xlink:href="#ray" transform="rotate(135 512 430)"/>
+    <use xlink:href="#ray" transform="rotate(180 512 430)"/>
+    <use xlink:href="#ray" transform="rotate(225 512 430)"/>
+    <use xlink:href="#ray" transform="rotate(270 512 430)"/>
+    <use xlink:href="#ray" transform="rotate(315 512 430)"/>
+  </g>
+  <circle cx="512" cy="430" r="150" fill="#FFD34D" stroke="#E8A400" stroke-width="8"/>
+  <path d="M690 560 C775 545 800 455 748 402" stroke="#7A1E1E" stroke-width="20" stroke-linecap="round" fill="none"/>
+  <circle cx="746" cy="398" r="26" fill="#7A1E1E"/>
+  <path d="M455 585 L330 472" stroke="#7A1E1E" stroke-width="46" stroke-linecap="round" fill="none"/>
+  <path d="M480 600 L492 730" stroke="#7A1E1E" stroke-width="48" stroke-linecap="round" fill="none"/>
+  <path d="M615 600 L605 730" stroke="#7A1E1E" stroke-width="48" stroke-linecap="round" fill="none"/>
+  <ellipse cx="540" cy="565" rx="158" ry="96" fill="#7A1E1E"/>
+  <circle cx="420" cy="486" r="94" fill="#7A1E1E"/>
+  <circle cx="396" cy="472" r="66" fill="#8E2626"/>
+  <circle cx="340" cy="490" r="24" fill="#8E2626"/>
+  <circle cx="404" cy="400" r="18" fill="#8E2626"/>
+  <circle cx="372" cy="460" r="9" fill="#FFFFFF"/>
+  <g transform="rotate(-25 325 470)">
+    <rect x="316" y="200" width="18" height="210" fill="#C9D2D8"/>
+    <polygon points="316,200 334,200 325,162" fill="#C9D2D8"/>
+    <rect x="292" y="408" width="66" height="14" rx="7" fill="#8B5A2B"/>
+    <rect x="317" y="420" width="16" height="52" fill="#8B5A2B"/>
+    <circle cx="325" cy="478" r="10" fill="#8B5A2B"/>
+  </g>
+</svg>
