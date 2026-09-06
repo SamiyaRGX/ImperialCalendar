@@ -1,0 +1,66 @@
+name: Build Unsigned IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          X=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Using: $X"
+          sudo xcode-select -s "$X/Contents/Developer"
+          xcodebuild -version
+
+      - name: Install tools
+        run: brew install xcodegen librsvg
+
+      - name: Generate assets (app icon & logo)
+        run: |
+          set -e
+          base="ImperialCalendar/Assets.xcassets"
+          mkdir -p "$base/AppIcon.appiconset" "$base/Logo.imageset"
+          cp AppIcon.svg Logo.svg
+          rsvg-convert -w 1024 -h 1024 AppIcon.svg -o "$base/AppIcon.appiconset/icon1024.png"
+          rsvg-convert -w 512 -h 512 Logo.svg -o "$base/Logo.imageset/logo.png"
+          cat > "$base/Contents.json" <<'EOF'
+          { "info" : { "author" : "xcode", "version" : 1 } }
+          EOF
+          cat > "$base/AppIcon.appiconset/Contents.json" <<'EOF'
+          { "images" : [ { "filename" : "icon1024.png", "idiom" : "universal", "platform" : "ios", "size" : "1024x1024" } ], "info" : { "author" : "xcode", "version" : 1 } }
+          EOF
+          cat > "$base/Logo.imageset/Contents.json" <<'EOF'
+          { "images" : [ { "filename" : "logo.png", "idiom" : "universal", "scale" : "1x" }, { "idiom" : "universal", "scale" : "2x" }, { "idiom" : "universal", "scale" : "3x" } ], "info" : { "author" : "xcode", "version" : 1 } }
+          EOF
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Archive (unsigned)
+        run: |
+          xcodebuild archive \
+            -project ImperialCalendar.xcodeproj \
+            -scheme ImperialCalendar \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/App.xcarchive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+
+      - name: Package IPA
+        run: |
+          mkdir Payload
+          cp -r build/App.xcarchive/Products/Applications/ImperialCalendar.app Payload/
+          zip -qry ImperialCalendar-unsigned.ipa Payload
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GahshomarShahanshahi-unsigned-ipa
+          path: ImperialCalendar-unsigned.ipa
